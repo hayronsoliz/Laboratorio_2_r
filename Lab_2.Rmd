@@ -1,0 +1,101 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Laboratorio 6
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+
+view(flights)
+view(airports)
+view(planes)
+view(airlines)
+view(weather)
+
+```
+
+
+1. INNER-JOIN
+
+```{r}
+
+#1.1 Conecte fligths con planes
+
+flights %>%
+  inner_join(planes, by = c("tailnum" = "tailnum")) #INNER JOIN
+
+#1.2 Conecte fligths con airlines
+
+flights %>%
+  inner_join(airlines, by = c("carrier" = "carrier")) #INNER JOIN
+
+#1.3 Conecte fligths con airports (según el esquema de arriba existe una doble relación de airports hacía fligths)
+
+airports %>%
+  inner_join(flights, by = c("faa"="origin")) %>%
+  inner_join(flights, by = c("faa"="dest"))
+
+#1.4 Conecte flights con weather (según esquema de arriba, hay 5 variables que relacionan a ambas tablas)
+
+flights %>%
+  inner_join(weather, by = c("year", "month", "day", "hour", "origin"))
+
+```
+
+2. DATA MANIPULATION
+
+```{r}
+#2.1. Utilice el verbo count en flights y envíe como parámetro las variables year, month, day. Luego filtre n para que sea mayor a 1000. Por último ordene n con el verbo arrange y devuelva el resultado
+
+flights %>% 
+  count (year, month, day) %>%
+  filter (n > 1000) %>%
+  arrange(desc(n))
+
+#2.2 Utilice el concepto de selección por rango (aplicando el operador “:”) para obtener las variables year hacia day. También agregue a esta selección hour, origin, dest, tailnum, carrier, arr_delay, dep_delay, por último almacene el resultado en la variable flights_selected.
+
+
+flights_selected <- flights %>% 
+  select(year:day, hour, origin, dest, tailnum, carrier, arr_delay, dep_delay)
+
+flights_selected
+
+#2.3 Utilice left_join para combinar airlines y flights_selected. Al obtener el resultado, utilice el verbo select para eliminar las columnas origin y dest (utilice el operador “-” para descartar estas columnas únicamente). Por último agregue una nueva columna con el verbo mutate, asigne el nombre tot_delay y opere la suma de arr_delay y 
+
+airlines %>%
+  inner_join(flights_selected, c("carrier"="carrier")) %>%
+  select(-origin, -dest) %>%
+  mutate(tot_delay = arr_delay + dep_delay)
+
+#4.4 Utilice inner_join para combinar flights y weather, luego agrupe por la variable precip. Utilice summarize para encontrar el promedio de la variable dep_delay (aplicando la función mean), asigne al promedio el nombre delay. Al utilizar la función mean agregue el parámetro na.rm y asígnele TRUE por defecto
+
+
+precip_delay <- flights %>%
+  inner_join(weather, by = c("year", "month", "day", "hour", "origin")) %>%
+  summarize (delay=mean(dep_delay, na.rm=TRUE)) %>%
+  replace_na(delay(n=0))
+
+precip_delay
+
+#4.5 Utilice la variable precip_delay para crear un gráfico de puntos tomando de eje x la variable precip y para y la variable delay.
+
+
+
+#4.6 Utilice fligths y aplique filter tomando en cuenta la siguiente condición: Que year sea igual a 2013, que month sea igual a 5 y que day sea igual a 10. Luego agrupe por la variable dest. Después utilice summarize para obtener el promedio de la variable arr_delay, establezca el parámetro na.rm en TRUE y asigne al promedio el nombre de delay. Conecte el resultado anterior por medio de inner_join a la tabla airports y asignelo a la variable flights_airports.
+
+
+
+#4.7 Utilice la variable flights_airports para crear un gráfico de puntos tomando de eje x la variable lon y para y la variable lat. Defina el color y el tamaño por medio de la variable delay. El tamaño se establece por medio del parámetro size.
+
+
+
+#4.8 Utilice inner_join para combinar flights y planes. Agregue los sufijos _flights y _planes respectivamente. Por último utilice la función transmute para seleccionar las variables tailnum y manufacturer, pero además agregue la variable pi que almacene la suma de dep_delay y arr_delay, yluego divida por air_time. 
+
+
+
+```
+
+
