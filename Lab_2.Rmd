@@ -74,27 +74,39 @@ airlines %>%
 
 
 precip_delay <- flights %>%
-  inner_join(weather, by = c("year", "month", "day", "hour", "origin")) %>%
-  summarize (delay=mean(dep_delay, na.rm=TRUE)) %>%
-  replace_na(delay(n=0))
+  inner_join(weather, c("year" = "year", "month" = "month", "day" = "day", "hour" = "hour", "origin" = "origin")) %>%
+  group_by(precip) %>%
+  summarize(delay = mean(dep_delay, na.rm = TRUE)) %>%
+  replace_na(list(delay = 0))
 
 precip_delay
 
 #4.5 Utilice la variable precip_delay para crear un gráfico de puntos tomando de eje x la variable precip y para y la variable delay.
 
+ggplot(precip_delay, aes(x = precip, y = delay)) +
+  geom_point()
 
 
 #4.6 Utilice fligths y aplique filter tomando en cuenta la siguiente condición: Que year sea igual a 2013, que month sea igual a 5 y que day sea igual a 10. Luego agrupe por la variable dest. Después utilice summarize para obtener el promedio de la variable arr_delay, establezca el parámetro na.rm en TRUE y asigne al promedio el nombre de delay. Conecte el resultado anterior por medio de inner_join a la tabla airports y asignelo a la variable flights_airports.
 
+flights_airports <- flights %>%
+  filter(year == 2013 & month == 5 & day == 10) %>%
+  group_by(dest) %>%
+  summarize(delay = mean(arr_delay, na.rm = TRUE)) %>%
+  ungroup() %>%
+  inner_join(airports, c("dest" = "faa"))
 
 
 #4.7 Utilice la variable flights_airports para crear un gráfico de puntos tomando de eje x la variable lon y para y la variable lat. Defina el color y el tamaño por medio de la variable delay. El tamaño se establece por medio del parámetro size.
 
-
+ggplot(flights_airports, aes(x = lon, y = lat, color = delay, size = delay)) +
+  geom_point()
 
 #4.8 Utilice inner_join para combinar flights y planes. Agregue los sufijos _flights y _planes respectivamente. Por último utilice la función transmute para seleccionar las variables tailnum y manufacturer, pero además agregue la variable pi que almacene la suma de dep_delay y arr_delay, yluego divida por air_time. 
 
-
+flights %>%
+  inner_join(planes, c("tailnum" = "tailnum"), suffix = c("_flights", "_planes")) %>%
+  transmute(tailnum, manufacturer, pi = (dep_delay + arr_delay) / air_time)
 
 ```
 
